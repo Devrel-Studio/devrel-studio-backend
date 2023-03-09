@@ -1,0 +1,67 @@
+// Prisma schema file
+// See https://www.prisma.io/docs/concepts/components/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @db.VarChar(255) @unique
+  password String @db.VarChar(255)
+  token String @db.VarChar(255) @unique
+  name String @db.VarChar(255)
+  createdAt DateTime @default(now())
+  lastLoginAt DateTime @default(now())
+  isActive Boolean @default(true)
+
+  @@index([email])
+  @@index([token])
+}
+
+model Measurement {
+  id Int @id @default(autoincrement())
+  type String
+  time DateTime
+  measuredValue Float
+  project Project @relation(name: "MeasurementProject", fields: [projectId], references: [id])
+  projectId Int
+}
+
+model Organisation {
+  id Int @id @default(autoincrement())
+  name String @unique
+}
+
+model Project {
+  id Int @id @default(autoincrement())
+  name String @unique
+  description String
+
+  measurements Measurement[] @relation("MeasurementProject")
+  sources Source[] @relation("SourceProject")
+  events Event[] @relation("EventProject")
+}
+
+model Source {
+  id Int @id @default(autoincrement())
+  type String
+  name String
+  project Project @relation(name: "SourceProject", fields: [projectId], references: [id])
+  projectId Int
+}
+
+model Event {
+  id Int @id @default(autoincrement())
+  date DateTime
+  type String
+  title String @unique
+  desc String
+  project Project @relation(name: "EventProject", fields: [projectId], references: [id])
+  projectId Int
+}
