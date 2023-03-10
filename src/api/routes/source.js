@@ -76,9 +76,14 @@ router.post("", requireSchema(schema), async (req, res, next) => {
 
     if (body.type === "Github") {
       console.log("Calling git")
-      let history = await Github.collectHistoryForRepo(body.value);
-      console.log("History is" + history);
-      await MeasurementService.saveGithubStarHistory(history, body.project, obj.id);
+      let [history, issues] = await Promise.all([
+      await Github.collectHistoryFor(body.value),
+      await Github.collectIssuesFor(body.value)
+    ]);
+      await Promise.all([
+      await MeasurementService.saveGithubStarHistory(history, body.project, obj.id),
+      await MeasurementService.saveOpenIssues(issues.open, body.project, obj.id),
+      await MeasurementService.saveClosedIssues(issues.open, body.project, obj.id)]);
     }
 
     res.status(201).json(obj);

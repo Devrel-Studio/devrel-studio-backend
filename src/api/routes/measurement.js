@@ -231,7 +231,7 @@ router.put(
  *       204:
  *        description: OK, object deleted
  */
-router.delete("/:id", requireValidId, async (req, res, next) => {
+router.delete("/:id", requireVaprolidId, async (req, res, next) => {
   try {
     const success = await MeasurementService.delete(req.params.id);
     if (success) {

@@ -10,6 +10,13 @@ function prepareData(data) {
             connect: { id: data.project },
           }
         : undefined,
+    source:
+      data.source !== undefined
+        ? {
+          connect: { id: data.source },
+        }
+        : undefined,
+
   };
 }
 
@@ -26,6 +33,7 @@ class MeasurementService {
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.stars,
           projectId: project,
+          sourceId: source,
         };
       });
       return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
@@ -41,9 +49,9 @@ class MeasurementService {
     }
   }
 
-  static async for(project) {
+  static async for(project, source) {
     try {
-      return await Measurement.findMany({ where: { projectId: project } });
+      return await Measurement.findMany({ where: { projectId: project, sourceId: source } });
     } catch (err) {
       throw new DatabaseError(err);
     }
@@ -85,6 +93,45 @@ class MeasurementService {
       throw new DatabaseError(err);
     }
   }
+
+  static async saveOpenIssues(open, project, source) {
+    console.log(source)
+    try {
+      //map data into measurement schema
+      let data = open.map((item) => {
+        return {
+          type: "issue_open",
+          time: item.day+"T00:00:00.000Z",
+          measuredValue: item.issues,
+          projectId: project,
+          sourceId: source,
+        };
+      });
+      return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
+  static async saveClosedIssues(open, project, source) {
+    console.log(source)
+    try {
+      //map data into measurement schema
+      let data = open.map((item) => {
+        return {
+          type: "issue_closed",
+          time: item.day+"T00:00:00.000Z",
+          measuredValue: item.issues,
+          projectId: project,
+          sourceId: source,
+        };
+      });
+      return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
 }
 
 export default MeasurementService;

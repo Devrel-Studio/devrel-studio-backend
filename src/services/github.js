@@ -1,11 +1,58 @@
 
 class Github {
   // connect to the github api and get history of stars for the repository at the url
-  static async collectHistoryForRepo(repoUrl) {
+  static async collectIssuesFor(repoUrl) {
+    let url = this.getRepoFromUrl(repoUrl)
+    let issues = await this.issuesForRepo(url)
+    //create a list of days from the start of the project to today with the number of open issues for each day
+    let opened = [];
+    let closed = [];
+    issues.forEach((issue) => {
+      if(issue.state==="open") {
+        let day = issue.created_at.split("T")[0];
+        let index = opened.findIndex((item) => item.day === day);
+        if (index === -1) {
+          opened.push({ day: day, issues: 1 });
+        } else {
+          opened[index].issues++;
+        }
+
+      }else{
+        let day = issue.created_at.split("T")[0];
+        let index = closed.findIndex((item) => item.day === day);
+        if (index === -1) {
+          closed.push({ day: day, issues: 1 });
+        } else {
+          closed[index].issues++;
+        }
+
+      }
+
+    } );
+    return {
+      open: opened,
+      closed: closed
+    };
+  }
+
+  //get all issues for a github repository
+  static async issuesForRepo(repo) {
+    //get the number of issues
+    const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues?state=all`;
+    const res = await fetch(url, { headers: {
+        Authorization: "Bearer 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"} } );
+    const data = await res.json();
+    console.log("Got response from issues")
+    console.log(data)
+    return data;
+  }
+
+  static async collectHistoryFor(repoUrl) {
     let url = this.getRepoFromUrl(repoUrl)
     const history = await Github.getHistoryForRepo(url);
     return history
   }
+
 
   //get the number of stars for the repo at the url
   static async getStarsForRepo(repo) {
@@ -20,13 +67,9 @@ class Github {
 
   // remove http://github.com or https://github.com from the url then split it by / and get the owner and repo
   static getRepoFromUrl(url) {
-    console.log("Got url" + url)
     url = url.replace("https://github.com/","")
-    console.log("New url is " + url + "")
     url = url.replace("http://github.com/","");
-    console.log("New url is " + url + "")
     const [owner, repo] = url.split('/');
-    console.log("New url is " + url + " and owner is " + owner + " and repo is " + repo + "")
     return { owner, repo };
   }
 

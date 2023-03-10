@@ -11,57 +11,62 @@ generator client {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  email String @db.VarChar(255) @unique
-  password String @db.VarChar(255)
-  token String @db.VarChar(255) @unique
-  name String @db.VarChar(255)
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  email       String   @unique @db.VarChar(255)
+  password    String   @db.VarChar(255)
+  token       String   @unique @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
   lastLoginAt DateTime @default(now())
-  isActive Boolean @default(true)
+  isActive    Boolean  @default(true)
 
   @@index([email])
   @@index([token])
 }
 
 model Measurement {
-  id Int @id @default(autoincrement())
-  type String
-  time DateTime
+  id            Int      @id @default(autoincrement())
+  type          String
+  time          DateTime
   measuredValue Float
-  project Project @relation(name: "MeasurementProject", fields: [projectId], references: [id])
-  projectId Int
+  project       Project  @relation(name: "MeasurementProject", fields: [projectId], references: [id])
+  projectId     Int
+  source        Source   @relation(name: "MeasurementSource", fields: [sourceId], references: [id])
+  sourceId      Int
 }
 
 model Organisation {
-  id Int @id @default(autoincrement())
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
 model Project {
-  id Int @id @default(autoincrement())
-  name String
+  id          Int    @id @default(autoincrement())
+  name        String
   description String
 
   measurements Measurement[] @relation("MeasurementProject")
-  sources Source[] @relation("SourceProject")
-  events Event[] @relation("EventProject")
+  sources      Source[]      @relation("SourceProject")
+  events       Event[]       @relation("EventProject")
 }
 
 model Source {
-  id Int @id @default(autoincrement())
-  type String
-  value String
-  project Project @relation(name: "SourceProject", fields: [projectId], references: [id])
+  id        Int     @id @default(autoincrement())
+  type      String
+  value     String
+  project   Project @relation(name: "SourceProject", fields: [projectId], references: [id])
   projectId Int
+
+  measurements Measurement[] @relation("MeasurementSource")
+
 }
 
 model Event {
-  id Int @id @default(autoincrement())
-  date DateTime
-  type String
-  title String
-  desc String
-  project Project @relation(name: "EventProject", fields: [projectId], references: [id])
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  type      String
+  title     String
+  desc      String
+  project   Project  @relation(name: "EventProject", fields: [projectId], references: [id])
   projectId Int
 }
