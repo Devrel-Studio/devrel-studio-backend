@@ -2,9 +2,9 @@ export default {
   type: "object",
   properties: {
     type: { type: "string" },
-    name: { type: "string" },
+    value: { type: "string" },
     project: { type: "integer" },
   },
-  required: ["type", "name", "project"],
+  required: ["type", "value", "project"],
   additionalProperties: false,
 };

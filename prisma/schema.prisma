@@ -40,7 +40,7 @@ model Organisation {
 
 model Project {
   id Int @id @default(autoincrement())
-  name String @unique
+  name String
   description String
 
   measurements Measurement[] @relation("MeasurementProject")
@@ -51,7 +51,7 @@ model Project {
 model Source {
   id Int @id @default(autoincrement())
   type String
-  name String
+  value String
   project Project @relation(name: "SourceProject", fields: [projectId], references: [id])
   projectId Int
 }
@@ -60,7 +60,7 @@ model Event {
   id Int @id @default(autoincrement())
   date DateTime
   type String
-  title String @unique
+  title String
   desc String
   project Project @relation(name: "EventProject", fields: [projectId], references: [id])
   projectId Int

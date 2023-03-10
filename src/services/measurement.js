@@ -14,6 +14,25 @@ function prepareData(data) {
 }
 
 class MeasurementService {
+
+  //save github star history into measurement table
+  static async saveGithubStarHistory(data, project, source) {
+    console.log(source)
+    try {
+      //map data into measurement schema
+      data = data.map((item) => {
+        return {
+          type: "github",
+          time: item.day+"T00:00:00.000Z",
+          measuredValue: item.stars,
+          projectId: project,
+        };
+      });
+      return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
   static async list() {
     try {
       return Measurement.findMany();
@@ -21,6 +40,15 @@ class MeasurementService {
       throw new DatabaseError(err);
     }
   }
+
+  static async for(project) {
+    try {
+      return await Measurement.findMany({ where: { projectId: project } });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
 
   static async get(id) {
     try {

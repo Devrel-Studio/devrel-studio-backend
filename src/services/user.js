@@ -3,9 +3,12 @@ import { randomBytes } from "crypto";
 import { User } from "../models/init.js";
 import DatabaseError from "../models/error.js";
 import { generatePasswordHash, validatePassword } from "../utils/password.js";
+import {createClient} from "@supabase/supabase-js";
 
 const generateRandomToken = () =>
   randomBytes(48).toString("base64").replace(/[+/]/g, ".");
+
+export const supabase = createClient('https://pfvmbijsselazjeclpcv.supabase.co', 'config.SUPABASE_KEY')
 
 class UserService {
   static async list() {
@@ -83,12 +86,12 @@ class UserService {
 
   static async authenticateWithToken(token) {
     try {
-      const user = await User.findUnique({
-        where: { token },
-      });
+      const supabaseUser = await supabase.auth.getUser(token)
+      const user = supabaseUser.data.user
       if (!user) return null;
 
       delete user.password;
+
       return user;
     } catch (err) {
       throw new DatabaseError(err);

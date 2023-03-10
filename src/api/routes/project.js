@@ -68,14 +68,19 @@ router.get("", async (req, res, next) => {
  */
 router.post("", requireSchema(schema), async (req, res, next) => {
   try {
-    const obj = await ProjectService.create(req.validatedBody);
+    let bod = req.validatedBody
+    console.log("Got request with")
+    console.log(bod)
+    const obj = await ProjectService.create(bod).catch((err) => {
+      console.log("Error creating project")
+      console.log(err)
+    });
+
     res.status(201).json(obj);
   } catch (error) {
-    if (error.isClientError()) {
+    console.log(error)
       res.status(400).json({ error });
-    } else {
       next(error);
-    }
   }
 });
 

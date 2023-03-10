@@ -78,10 +78,10 @@ CREATE INDEX "User_token_idx" ON "User"("token");
 CREATE UNIQUE INDEX "Organisation_name_key" ON "Organisation"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Project_name_key" ON "Project"("name");
+CREATE INDEX "Project_name_key" ON "Project"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Event_title_key" ON "Event"("title");
+CREATE INDEX "Event_title_key" ON "Event"("title");
 
 -- AddForeignKey
 ALTER TABLE "Measurement" ADD CONSTRAINT "Measurement_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -36,7 +36,7 @@ describe("/api/v1/source/", () => {
   test("POST creates a new Source", async () => {
     const data = {
       type: "test",
-      name: "test",
+      value: "test",
       project: 1,
     };
 

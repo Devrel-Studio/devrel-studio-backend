@@ -12,8 +12,8 @@ process.on("uncaughtException", (err) => {
   server.close();
 });
 
-process.on("unhandledRejection", (reason) => {
-  log.error(`Unhandled promise rejection: ${reason}`);
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
 const main = async () => {

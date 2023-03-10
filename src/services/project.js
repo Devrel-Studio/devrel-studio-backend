@@ -22,6 +22,7 @@ class ProjectService {
     try {
       return await Project.create({ data });
     } catch (err) {
+      console.log(err)
       throw new DatabaseError(err);
     }
   }

@@ -120,6 +120,48 @@ router.get("/:id", requireValidId, async (req, res, next) => {
 
 /** @swagger
  *
+ * /measurement/project/{id}:
+ *   get:
+ *     tags: [Measurement]
+ *     summary: Get a Measurement by project id
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Measurement objects for project with specified id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Measurement'
+ */
+
+router.get("/project/:id", requireValidId, async (req, res, next) => {
+  try {
+
+    const obj = await MeasurementService.for(req.params.id);
+    if (obj) {
+      res.json({ github: obj} );
+    } else {
+      res.status(404).json({ error: "Resource not found" });
+    }
+  } catch (error) {
+    if (error.isClientError()) {
+      res.status(400).json({ error });
+    } else {
+      next(error);
+    }
+  }
+});
+
+
+/** @swagger
+ *
  * /measurement/{id}:
  *   put:
  *     tags: [Measurement]

@@ -4,6 +4,8 @@ import SourceService from "../../services/source.js";
 import { requireUser } from "../middlewares/auth.js";
 import { requireSchema, requireValidId } from "../middlewares/validate.js";
 import schema from "../schemas/source.js";
+import Github from "../../services/github.js";
+import MeasurementService from "../../services/measurement.js";
 
 const router = Router();
 
@@ -68,14 +70,21 @@ router.get("", async (req, res, next) => {
  */
 router.post("", requireSchema(schema), async (req, res, next) => {
   try {
-    const obj = await SourceService.create(req.validatedBody);
+    console.log("Req is here")
+    const body = req.validatedBody;
+    const obj = await SourceService.create(body);
+
+    if (body.type === "Github") {
+      console.log("Calling git")
+      let history = await Github.collectHistoryForRepo(body.value);
+      console.log("History is" + history);
+      await MeasurementService.saveGithubStarHistory(history, body.project, obj.id);
+    }
+
     res.status(201).json(obj);
   } catch (error) {
-    if (error.isClientError()) {
-      res.status(400).json({ error });
-    } else {
+    console.log(error)
       next(error);
-    }
   }
 });
 
