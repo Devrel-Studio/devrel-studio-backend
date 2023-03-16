@@ -33,9 +33,9 @@ router.use(requireUser);
  *               items:
  *                 $ref: '#/components/schemas/Source'
  */
-router.get("", async (req, res, next) => {
+router.get("/project/:projectId", async (req, res, next) => {
   try {
-    const results = await SourceService.list();
+    const results = await SourceService.list(req.params.projectId);
     res.json(results);
   } catch (error) {
     if (error.isClientError()) {
@@ -82,8 +82,7 @@ router.post("", requireSchema(schema), async (req, res, next) => {
     ]);
       await Promise.all([
       await MeasurementService.saveGithubStarHistory(history, body.project, obj.id),
-      await MeasurementService.saveOpenIssues(issues.open, body.project, obj.id),
-      await MeasurementService.saveClosedIssues(issues.open, body.project, obj.id)]);
+      await MeasurementService.saveTotalIssues(issues.list, body.project, obj.id)])
     }
 
     res.status(201).json(obj);

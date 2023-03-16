@@ -11,17 +11,17 @@ generator client {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
+  id          String   @unique
   email       String   @unique @db.VarChar(255)
-  password    String   @db.VarChar(255)
-  token       String   @unique @db.VarChar(255)
   name        String   @db.VarChar(255)
   createdAt   DateTime @default(now())
   lastLoginAt DateTime @default(now())
   isActive    Boolean  @default(true)
 
   @@index([email])
-  @@index([token])
+
+  project Project[] @relation("UserProject")
+
 }
 
 model Measurement {
@@ -29,6 +29,7 @@ model Measurement {
   type          String
   time          DateTime
   measuredValue Float
+  totalValue    Float
   project       Project  @relation(name: "MeasurementProject", fields: [projectId], references: [id])
   projectId     Int
   source        Source   @relation(name: "MeasurementSource", fields: [sourceId], references: [id])
@@ -44,6 +45,9 @@ model Project {
   id          Int    @id @default(autoincrement())
   name        String
   description String
+  user        User   @relation(name: "UserProject", fields: [userId], references: [id])
+  userId      String
+
 
   measurements Measurement[] @relation("MeasurementProject")
   sources      Source[]      @relation("SourceProject")
@@ -56,9 +60,7 @@ model Source {
   value     String
   project   Project @relation(name: "SourceProject", fields: [projectId], references: [id])
   projectId Int
-
   measurements Measurement[] @relation("MeasurementSource")
-
 }
 
 model Event {

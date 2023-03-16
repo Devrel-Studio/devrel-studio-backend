@@ -3,49 +3,29 @@ class Github {
   // connect to the github api and get history of stars for the repository at the url
   static async collectIssuesFor(repoUrl) {
     let url = this.getRepoFromUrl(repoUrl)
-    let issues = await this.issuesForRepo(url)
-    //create a list of days from the start of the project to today with the number of open issues for each day
-    let opened = [];
-    let closed = [];
-    issues.forEach((issue) => {
-      if(issue.state==="open") {
-        let day = issue.created_at.split("T")[0];
-        let index = opened.findIndex((item) => item.day === day);
-        if (index === -1) {
-          opened.push({ day: day, issues: 1 });
-        } else {
-          opened[index].issues++;
-        }
-
-      }else{
-        let day = issue.created_at.split("T")[0];
-        let index = closed.findIndex((item) => item.day === day);
-        if (index === -1) {
-          closed.push({ day: day, issues: 1 });
-        } else {
-          closed[index].issues++;
-        }
-
-      }
-
-    } );
-    return {
-      open: opened,
-      closed: closed
-    };
+    let issues = await this.getIssuesForRepo(url)
+    return issues;
   }
 
   //get all issues for a github repository
-  static async issuesForRepo(repo) {
+  static async fetchIssuesForRepo(repo) {
     //get the number of issues
     const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues?state=all`;
     const res = await fetch(url, { headers: {
         Authorization: "Bearer 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"} } );
     const data = await res.json();
-    console.log("Got response from issues")
-    console.log(data)
     return data;
   }
+
+  static async fetchIssuesForRepoPage(repo, page) {
+    //get the number of issues
+    const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues?state=all&page=${page}&per_page=100`;
+    const res = await fetch(url, { headers: {
+        Authorization: "Bearer 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"} } );
+    const data = await res.json();
+    return data;
+  }
+
 
   static async collectHistoryFor(repoUrl) {
     let url = this.getRepoFromUrl(repoUrl)
@@ -71,6 +51,39 @@ class Github {
     url = url.replace("http://github.com/","");
     const [owner, repo] = url.split('/');
     return { owner, repo };
+  }
+
+  static async getIssuesForRepo(repo) {
+    const issueHistory = [];
+    const issues = await Github.fetchIssuesForRepo(repo);
+    issueHistory.push(...issues)
+    const total = issues[0].number
+    const pages = Math.ceil(total / 100);
+    for (let i = 1; i <= pages; i++) {
+      const page = await Github.fetchIssuesForRepoPage(repo, i);
+      issueHistory.push(...page);
+    }
+
+    //create historicalIssueData with total number of issues on each day and change in number of issues by subtracting if the issue was closed and adding if it was opened
+    const historicalIssueData = issueHistory.reduce((acc, issue) => {
+      console.log("Got acc",acc)
+      const day = acc.find(day => day.day === issue.created_at.split("T")[0]);
+      if (day) {
+        if(issue.state==="open"){
+          day.issues++;
+        }else{
+          day.issues--;
+        }
+      } else {
+        if(issue.state==="open"){
+          acc.push({ day: issue.created_at.split("T")[0], issues: 1 });
+        }else{
+          acc.push({ day: issue.created_at.split("T")[0], issues: -1 });
+        }
+      }
+      return acc;
+    },[])
+    return historicalIssueData;
   }
 
   //get the number of stars for the repo at the url, then split it by 100 and call the api for each 100

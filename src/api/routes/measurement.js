@@ -4,6 +4,7 @@ import MeasurementService from "../../services/measurement.js";
 import { requireUser } from "../middlewares/auth.js";
 import { requireSchema, requireValidId } from "../middlewares/validate.js";
 import schema from "../schemas/measurement.js";
+import SourceService from "../../services/source.js";
 
 const router = Router();
 
@@ -159,6 +160,82 @@ router.get("/project/:id", requireValidId, async (req, res, next) => {
   }
 });
 
+router.get("/github/:id", requireValidId, async (req, res, next) => {
+  try {
+    console.log("Got request")
+    const project_id = parseInt(req.params.id);
+    const from = req.query.from;
+    const to = req.query.to;
+    let measurements = null;
+      let github = await SourceService.sourceFor(project_id, "Github");
+      console.log("Github is", github)
+      github = github[0];
+      console.log(github)
+    if(from !== undefined && to !== undefined) {
+      measurements = await MeasurementService.listFromTo(project_id, github.id, undefined, from, to);
+    } else {
+      console.log("Calling all")
+      measurements = await MeasurementService.for(project_id, github.id);
+    }
+    measurements = measurements.sort((a, b) => new Date(a.time) - new Date(b.time))
+
+    let stars = growthFromMeasurements(measurements.filter((m) => m.type === "stars"));
+    let issues = measurements.filter((m) => m.type === "issues_total");
+    //combine issues opened and closed into a single list by subtracting closed from opened on the same day
+    issues = growthFromMeasurements(issues)
+
+    if (measurements) {
+      res.json({ stars: stars, issues: issues} );
+    } else {
+      res.status(404).json({ error: "Resource not found" });
+    }
+  } catch (error) {
+    console.log(error)
+    if (error.isClientError()) {
+      res.status(400).json({ error });
+    } else {
+      next(error);
+    }
+  }
+});
+
+
+router.get("/project/:id/:source", requireValidId, async (req, res, next) => {
+  try {
+    const project_id = parseInt(req.params.id);
+    const source_id = parseInt(req.params.source);
+    const from = req.query.from;
+    const to = req.query.to;
+    const type = req.query.type;
+    let measurements = [];
+    if(from !== undefined && to !== undefined) {
+      measurements = await MeasurementService.listFromTo(project_id, source_id, type, from, to);
+    } else {
+      console.log("Calling all")
+      measurements = await MeasurementService.for(project_id, source_id);
+    }
+    measurements = measurements.sort((a, b) => new Date(a.time) - new Date(b.time))
+    console.log("project,source,from,to",project_id,source_id,from,to)
+    if (measurements) {
+
+      let datedMeasurements = measurements.map(it=> { return {amount: it.totalValue, time: new Date(Date.parse(it.time)) } })
+
+      const avgDailyGrowth =
+        calculateAverageDailyGrowth(datedMeasurements)
+
+    const avgGrowth = calculateGrowth(datedMeasurements);
+      res.json({ daily_average: avgDailyGrowth, total_growth: avgGrowth, github: measurements} );
+    } else {
+      res.status(404).json({ error: "Resource not found" });
+    }
+  } catch (error) {
+    console.log(error)
+      next(error);
+  }
+});
+
+
+
 
 /** @swagger
  *
@@ -231,7 +308,7 @@ router.put(
  *       204:
  *        description: OK, object deleted
  */
-router.delete("/:id", requireVaprolidId, async (req, res, next) => {
+router.delete("/:id", requireValidId, async (req, res, next) => {
   try {
     const success = await MeasurementService.delete(req.params.id);
     if (success) {
@@ -249,3 +326,52 @@ router.delete("/:id", requireVaprolidId, async (req, res, next) => {
 });
 
 export default router;
+
+function calculateGrowth(measurements) {
+  if (measurements.length < 2) {
+    return 0; // return 0 if there are fewer than two measurements
+  }
+
+  const firstMeasurement = measurements[0];
+  const lastMeasurement = measurements[measurements.length - 1];
+
+  const percentageChange = (lastMeasurement.amount - firstMeasurement.amount) / firstMeasurement.amount * 100;
+
+  return percentageChange;
+}
+
+
+function calculateAverageDailyGrowth(measurements) {
+  if (measurements.length < 2) {
+    return 0; // return 0 if there are fewer than two measurements
+  }
+
+  let totalPercentageChange = 0;
+
+  for (let i = 1; i < measurements.length; i++) {
+    const currentMeasurement = measurements[i];
+    const previousMeasurement = measurements[i - 1];
+
+    const percentageChange = (currentMeasurement.amount - previousMeasurement.amount) / previousMeasurement.amount * 100;
+
+    const dailyPercentageChange = Math.pow(1 + percentageChange / 100, 1 / 1) - 1;
+
+    totalPercentageChange += dailyPercentageChange;
+  }
+
+  const averageDailyPercentageChange = totalPercentageChange / (measurements.length - 1);
+
+  return averageDailyPercentageChange * 100; // multiply by 100 to convert to percentage
+}
+
+
+function growthFromMeasurements(measurements) {
+  let datedMeasurements = measurements.map(it=> { return {amount: it.totalValue, time: new Date(Date.parse(it.time)) } })
+
+  const avgDailyGrowth =
+    calculateAverageDailyGrowth(datedMeasurements)
+
+  const avgGrowth = calculateGrowth(datedMeasurements);
+
+  return { daily_average: avgDailyGrowth, total_growth: avgGrowth, data: measurements}
+}

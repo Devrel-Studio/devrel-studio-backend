@@ -98,19 +98,16 @@ class UserService {
     }
   }
 
-  static async createUser({ password, ...userData }) {
-    const hash = await generatePasswordHash(password);
+  static async createUser({ id, ...userData }) {
 
     try {
       const data = {
         ...userData,
-        password: hash,
-        token: generateRandomToken(),
+        id: id
       };
 
       const user = await User.create({ data });
 
-      delete user.password;
       return user;
     } catch (err) {
       throw new DatabaseError(err);

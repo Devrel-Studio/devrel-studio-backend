@@ -33,7 +33,8 @@ router.use(requireUser);
  */
 router.get("", async (req, res, next) => {
   try {
-    const results = await ProjectService.list();
+    let user = req.user.id
+    const results = await ProjectService.list(user);
     res.json(results);
   } catch (error) {
     if (error.isClientError()) {
@@ -70,8 +71,9 @@ router.post("", requireSchema(schema), async (req, res, next) => {
   try {
     let bod = req.validatedBody
     console.log("Got request with")
+    let id = req.user.id
     console.log(bod)
-    const obj = await ProjectService.create(bod).catch((err) => {
+    const obj = await ProjectService.create({ ...bod, user: id}).catch((err) => {
       console.log("Error creating project")
       console.log(err)
     });

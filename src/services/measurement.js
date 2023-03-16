@@ -27,11 +27,14 @@ class MeasurementService {
     console.log(source)
     try {
       //map data into measurement schema
+      let total = 0;
       data = data.map((item) => {
+        total+=item.stars;
         return {
-          type: "github",
+          type: "stars",
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.stars,
+          totalValue: total,
           projectId: project,
           sourceId: source,
         };
@@ -48,6 +51,38 @@ class MeasurementService {
       throw new DatabaseError(err);
     }
   }
+
+  static async listFromTo(project, source, type, from,to) {
+    console.log(from,to)
+    try {
+      if(type === undefined){
+        return Measurement.findMany({
+          where: {
+            projectId: project,
+            sourceId: source,
+            time: {
+              gte: from,
+              lte: to,
+            }
+          }
+        });
+      }else
+      return Measurement.findMany({
+        where: {
+          projectId: project,
+          sourceId: source,
+          time: {
+            gte: from,
+            lte: to,
+          },
+          type: type
+        }
+      });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
 
   static async for(project, source) {
     try {
@@ -94,15 +129,40 @@ class MeasurementService {
     }
   }
 
+  static async saveTotalIssues(open, project, source) {
+    try {
+      //map data into measurement schema
+      let total = 0;
+      let data = open.map((item) => {
+        total += item.issues;
+        return {
+          type: "issues_total",
+          time: item.day+"T00:00:00.000Z",
+          measuredValue: item.issues,
+          totalValue: total,
+          projectId: project,
+          sourceId: source,
+        };
+      });
+      return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
+
   static async saveOpenIssues(open, project, source) {
     console.log(source)
     try {
       //map data into measurement schema
+      let total = 0;
       let data = open.map((item) => {
+        total+=item.issues;
         return {
           type: "issue_open",
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.issues,
+          totalValue: total,
           projectId: project,
           sourceId: source,
         };
@@ -117,11 +177,14 @@ class MeasurementService {
     console.log(source)
     try {
       //map data into measurement schema
+      let total = 0;
       let data = open.map((item) => {
+        total+=item.issues;
         return {
           type: "issue_closed",
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.issues,
+          totalValue: total,
           projectId: project,
           sourceId: source,
         };

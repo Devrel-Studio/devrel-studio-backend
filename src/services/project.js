@@ -1,14 +1,34 @@
 import { Project } from "../models/init.js";
 import DatabaseError from "../models/error.js";
 
+function prepareData(data) {
+  return {
+    ...data,
+    user:
+      data.user !== undefined
+        ? {
+          connect: { id: data.user },
+        }
+        : undefined,
+  };
+}
+
 class ProjectService {
-  static async list() {
+
+
+  static async list(userId) {
     try {
-      return Project.findMany();
+      return Project.findMany( {
+        where: {
+          userId: userId
+        },
+      });
     } catch (err) {
       throw new DatabaseError(err);
     }
   }
+
+
 
   static async get(id) {
     try {
@@ -20,7 +40,7 @@ class ProjectService {
 
   static async create(data) {
     try {
-      return await Project.create({ data });
+      return await Project.create({ data: prepareData(data)});
     } catch (err) {
       console.log(err)
       throw new DatabaseError(err);

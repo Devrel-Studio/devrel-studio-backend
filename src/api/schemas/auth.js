@@ -12,11 +12,9 @@ export const loginSchema = {
 export const registerSchema = {
   type: "object",
   properties: {
-    name: { type: "string" },
-    email: { type: "string", format: "email" },
-    password: { type: "string" },
+    token: { type: "string" },
   },
-  required: ["email", "password"],
+  required: ["token"],
 };
 
 export const changePasswordSchema = {

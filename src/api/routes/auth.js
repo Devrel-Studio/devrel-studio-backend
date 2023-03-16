@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import UserService from "../../services/user.js";
+import UserService, { supabase } from "../../services/user.js";
 import urls from "../urls.js";
 import { requireUser } from "../middlewares/auth.js";
 import { requireSchema } from "../middlewares/validate.js";
@@ -86,9 +86,14 @@ router.post(
     }
 
     try {
-      const user = await UserService.createUser(req.validatedBody);
+      let id = await supabase.auth.getUser(req.validatedBody.token);
+      console.log(id)
+      let userId = id.data.user.id;
+      const user = await UserService.createUser( { id: userId,
+      name: id.data.user.email, email: id.data.user.email});
       res.status(201).json({ user });
     } catch (error) {
+      console.log(error)
       if (error.isClientError()) {
         res.status(400).json({ error });
       } else {

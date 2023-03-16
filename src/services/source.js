@@ -14,9 +14,15 @@ function prepareData(data) {
 }
 
 class SourceService {
-  static async list() {
+  static async list(projectId) {
     try {
-      return Source.findMany();
+      return Source.findMany({
+        where: {
+          project: {
+            id: projectId,
+          }
+        }
+      });
     } catch (err) {
       throw new DatabaseError(err);
     }
@@ -53,6 +59,14 @@ class SourceService {
     try {
       await Source.delete({ where: { id } });
       return true;
+    } catch (err) {
+      throw new DatabaseError(err);
+    }
+  }
+
+  static async sourceFor(project_id, type) {
+    try {
+      return await Source.findMany({ where: { projectId: project_id, type: type } });
     } catch (err) {
       throw new DatabaseError(err);
     }
