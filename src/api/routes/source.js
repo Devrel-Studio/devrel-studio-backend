@@ -82,7 +82,7 @@ router.post("", requireSchema(schema), async (req, res, next) => {
     ]);
       await Promise.all([
       await MeasurementService.saveGithubStarHistory(history, body.project, obj.id),
-      await MeasurementService.saveTotalIssues(issues.list, body.project, obj.id)])
+      await MeasurementService.saveTotalIssues(issues, body.project, obj.id)])
     }
 
     res.status(201).json(obj);
