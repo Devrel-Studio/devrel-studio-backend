@@ -40,8 +40,6 @@ class Github {
     const res = await fetch(url, { headers: {
       Authorization: "Bearer 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"} } );
     const data = await res.json();
-    console.log("Got response from github")
-    console.log(data)
     return data.stargazers_count;
   }
 
@@ -54,7 +52,7 @@ class Github {
   }
 
   static async getIssuesForRepo(repo) {
-    const issueHistory = [];
+    let issueHistory = [];
     const issues = await Github.fetchIssuesForRepo(repo);
     issueHistory.push(...issues)
     const total = issues[0].number
@@ -63,10 +61,10 @@ class Github {
       const page = await Github.fetchIssuesForRepoPage(repo, i);
       issueHistory.push(...page);
     }
-
+    issueHistory = issueHistory.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    console.log("Issue history size is", issueHistory.length)
     //create historicalIssueData with total number of issues on each day and change in number of issues by subtracting if the issue was closed and adding if it was opened
     const historicalIssueData = issueHistory.reduce((acc, issue) => {
-      console.log("Got acc",acc)
       const day = acc.find(day => day.day === issue.created_at.split("T")[0]);
       if (day) {
         if(issue.state==="open"){
@@ -83,6 +81,13 @@ class Github {
       }
       return acc;
     },[])
+
+    //Join it into a list of issues and total value at the day
+    let totalIssues = 0;
+    historicalIssueData.forEach(day => {
+      totalIssues += day.issues
+      day.totalIssues = totalIssues
+    })
     return historicalIssueData;
   }
 
@@ -108,7 +113,6 @@ class Github {
 
     //map historical data to the format we need - an array with objects
     let newData = historicalData.map(day => ({ day: day.day, stars: day.stars }));
-    console.log(newData)
     return newData;
   }
 

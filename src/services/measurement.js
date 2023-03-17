@@ -132,19 +132,23 @@ class MeasurementService {
   static async saveTotalIssues(open, project, source) {
     try {
       //map data into measurement schema
-      let total = 0;
+
       let data = open.map((item) => {
-        total += item.issues;
         return {
           type: "issues_total",
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.issues,
-          totalValue: total,
+          total: item.totalIssues,
           projectId: project,
           sourceId: source,
         };
-      });
-      return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
+      }).sort((a, b) => new Date(a.time) - new Date(b.time))
+        .map((item) => {
+          console.log("Total issues:", item.total, "on", item.day, "with", item.measuredValue, "for project", project, "from source", source)
+          return item;
+        });
+      return data;
+      //return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
     } catch (err) {
       throw new DatabaseError(err);
     }
@@ -155,16 +159,28 @@ class MeasurementService {
     console.log(source)
     try {
       //map data into measurement schema
-      let total = 0;
-      let data = open.map((item) => {
-        total+=item.issues;
+      let first = open.map((item) => {
         return {
           type: "issue_open",
           time: item.day+"T00:00:00.000Z",
           measuredValue: item.issues,
-          totalValue: total,
+          totalValue: 0,
           projectId: project,
           sourceId: source,
+        };
+      });
+      first = first.sort((a, b) => new Date(a.time) - new Date(b.time))
+
+
+    console.log("First date is ${first[0].time}", first[0].time)
+      console.log("Last date is ${first[0].time}", first[first.length -1 ].time)
+
+      let total = 0;
+      let data = first.map((item) => {
+        total+=item.issues;
+        return {
+          ...first,
+          totalValue: total,
         };
       });
       return await Measurement.createMany({ data: data.map((data)=>prepareData(data)) });
