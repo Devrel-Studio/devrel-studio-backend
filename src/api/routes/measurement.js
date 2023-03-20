@@ -162,19 +162,15 @@ router.get("/project/:id", requireValidId, async (req, res, next) => {
 
 router.get("/github/:id", requireValidId, async (req, res, next) => {
   try {
-    console.log("Got request")
     const project_id = parseInt(req.params.id);
     const from = req.query.from;
     const to = req.query.to;
     let measurements = null;
       let github = await SourceService.sourceFor(project_id, "Github");
-      console.log("Github is", github)
       github = github[0];
-      console.log(github)
     if(from !== undefined && to !== undefined) {
       measurements = await MeasurementService.listFromTo(project_id, github.id, undefined, from, to);
     } else {
-      console.log("Calling all")
       measurements = await MeasurementService.for(project_id, github.id);
     }
     measurements = measurements.sort((a, b) => new Date(a.time) - new Date(b.time))
@@ -190,7 +186,6 @@ router.get("/github/:id", requireValidId, async (req, res, next) => {
       res.status(404).json({ error: "Resource not found" });
     }
   } catch (error) {
-    console.log(error)
     if (error.isClientError()) {
       res.status(400).json({ error });
     } else {
@@ -211,11 +206,9 @@ router.get("/project/:id/:source", requireValidId, async (req, res, next) => {
     if(from !== undefined && to !== undefined) {
       measurements = await MeasurementService.listFromTo(project_id, source_id, type, from, to);
     } else {
-      console.log("Calling all")
       measurements = await MeasurementService.for(project_id, source_id);
     }
     measurements = measurements.sort((a, b) => new Date(a.time) - new Date(b.time))
-    console.log("project,source,from,to",project_id,source_id,from,to)
     if (measurements) {
 
       let datedMeasurements = measurements.map(it=> { return {amount: it.totalValue, time: new Date(Date.parse(it.time)) } })
@@ -229,7 +222,6 @@ router.get("/project/:id/:source", requireValidId, async (req, res, next) => {
       res.status(404).json({ error: "Resource not found" });
     }
   } catch (error) {
-    console.log(error)
       next(error);
   }
 });

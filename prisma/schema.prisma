@@ -10,6 +10,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+//separate into UserProject and OrganisationProject later
 model User {
   id          String   @unique
   email       String   @unique @db.VarChar(255)
@@ -24,6 +25,7 @@ model User {
 
 }
 
+//separate into ProjectMeasurement and SourceMeasurement later
 model Measurement {
   id            Int      @id @default(autoincrement())
   type          String
@@ -54,6 +56,7 @@ model Project {
   events       Event[]       @relation("EventProject")
 }
 
+//separate into ProjectSource later
 model Source {
   id        Int     @id @default(autoincrement())
   type      String
@@ -63,6 +66,7 @@ model Source {
   measurements Measurement[] @relation("MeasurementSource")
 }
 
+//separate into ProjectEvent later
 model Event {
   id        Int      @id @default(autoincrement())
   date      DateTime

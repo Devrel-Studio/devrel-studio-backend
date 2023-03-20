@@ -24,7 +24,6 @@ class MeasurementService {
 
   //save github star history into measurement table
   static async saveGithubStarHistory(data, project, source) {
-    console.log(source)
     try {
       //map data into measurement schema
       let total = 0;
@@ -53,7 +52,6 @@ class MeasurementService {
   }
 
   static async listFromTo(project, source, type, from,to) {
-    console.log(from,to)
     try {
       if(type === undefined){
         return Measurement.findMany({
@@ -144,7 +142,6 @@ class MeasurementService {
         };
       }).sort((a, b) => new Date(a.time) - new Date(b.time))
         .map((item) => {
-          console.log("Total issues:", item.total, "on", item.day, "with", item.measuredValue, "for project", project, "from source", source)
           return item;
         });
       return data;
@@ -156,7 +153,6 @@ class MeasurementService {
 
 
   static async saveOpenIssues(open, project, source) {
-    console.log(source)
     try {
       //map data into measurement schema
       let first = open.map((item) => {
@@ -172,8 +168,6 @@ class MeasurementService {
       first = first.sort((a, b) => new Date(a.time) - new Date(b.time))
 
 
-    console.log("First date is ${first[0].time}", first[0].time)
-      console.log("Last date is ${first[0].time}", first[first.length -1 ].time)
 
       let total = 0;
       let data = first.map((item) => {
@@ -190,7 +184,6 @@ class MeasurementService {
   }
 
   static async saveClosedIssues(open, project, source) {
-    console.log(source)
     try {
       //map data into measurement schema
       let total = 0;

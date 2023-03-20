@@ -87,13 +87,11 @@ router.post(
 
     try {
       let id = await supabase.auth.getUser(req.validatedBody.token);
-      console.log(id)
       let userId = id.data.user.id;
       const user = await UserService.createUser( { id: userId,
       name: id.data.user.email, email: id.data.user.email});
       res.status(201).json({ user });
     } catch (error) {
-      console.log(error)
       if (error.isClientError()) {
         res.status(400).json({ error });
       } else {

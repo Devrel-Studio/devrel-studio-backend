@@ -34,7 +34,6 @@ class Github {
   }
 
 
-  //get the number of stars for the repo at the url
   static async getStarsForRepo(repo) {
     const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}`;
     const res = await fetch(url, { headers: {
@@ -43,7 +42,6 @@ class Github {
     return data.stargazers_count;
   }
 
-  // remove http://github.com or https://github.com from the url then split it by / and get the owner and repo
   static getRepoFromUrl(url) {
     url = url.replace("https://github.com/","")
     url = url.replace("http://github.com/","");
@@ -62,8 +60,8 @@ class Github {
       issueHistory.push(...page);
     }
     issueHistory = issueHistory.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-    console.log("Issue history size is", issueHistory.length)
-    //create historicalIssueData with total number of issues on each day and change in number of issues by subtracting if the issue was closed and adding if it was opened
+
+    //Delta of issues per day
     const historicalIssueData = issueHistory.reduce((acc, issue) => {
       const day = acc.find(day => day.day === issue.created_at.split("T")[0]);
       if (day) {

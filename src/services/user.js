@@ -4,11 +4,12 @@ import { User } from "../models/init.js";
 import DatabaseError from "../models/error.js";
 import { generatePasswordHash, validatePassword } from "../utils/password.js";
 import {createClient} from "@supabase/supabase-js";
+import config from "../utils/config.js";
 
 const generateRandomToken = () =>
   randomBytes(48).toString("base64").replace(/[+/]/g, ".");
 
-export const supabase = createClient('https://pfvmbijsselazjeclpcv.supabase.co', 'config.SUPABASE_KEY')
+export const supabase = createClient('https://pfvmbijsselazjeclpcv.supabase.co', config.SUPABASE_KEY)
 
 class UserService {
   static async list() {

@@ -70,12 +70,10 @@ router.get("/project/:projectId", async (req, res, next) => {
  */
 router.post("", requireSchema(schema), async (req, res, next) => {
   try {
-    console.log("Req is here")
     const body = req.validatedBody;
     const obj = await SourceService.create(body);
 
     if (body.type === "Github") {
-      console.log("Calling git")
       let [history, issues] = await Promise.all([
       await Github.collectHistoryFor(body.value),
       await Github.collectIssuesFor(body.value)
@@ -87,7 +85,6 @@ router.post("", requireSchema(schema), async (req, res, next) => {
 
     res.status(201).json(obj);
   } catch (error) {
-    console.log(error)
       next(error);
   }
 });
